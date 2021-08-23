@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # Copyright 2017 Google LLC.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -121,7 +123,12 @@ export DV_INSTALL_GPU_DRIVERS="${DV_INSTALL_GPU_DRIVERS:-0}"
 #    --experimental_build_setting_api"
 # Presumably it won't be needed at some later point when bazel_skylib is
 # upgraded again.
-export DV_COPT_FLAGS="--copt=-march=corei7 --copt=-Wno-sign-compare --copt=-Wno-write-strings --experimental_build_setting_api"
+export DV_COPT_FLAGS=(
+"--copt=-march=corei7"
+"--copt=-Wno-sign-compare"
+"--copt=-Wno-write-strings"
+"--experimental_build_setting_api"
+)
 
 function note_build_stage {
   echo "========== [$(date)] Stage '${1}' starting"

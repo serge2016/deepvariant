@@ -46,17 +46,17 @@ fi
 # Note: If running with GPU, tests must be executed serially due to a GPU
 # contention issue.
 if [[ "${DV_GPU_BUILD:-0}" = "1" ]]; then
-  bazel test -c opt --local_test_jobs=1 ${DV_COPT_FLAGS} "$@" \
+  bazel test -c opt --local_test_jobs=1 "${DV_COPT_FLAGS[@]}" "$@" \
     deepvariant/...
   # GPU tests are commented out for now.
   # Because they seem to be all filtered out, and as a result causing an error.
   # See internal#comment5.
   # redacted
-  # bazel test -c opt --local_test_jobs=1 ${DV_COPT_FLAGS} "$@" \
+  # bazel test -c opt --local_test_jobs=1 "${DV_COPT_FLAGS[@]}" "$@" \
   #   deepvariant:gpu_tests
 else
   # Running parallel tests on CPU.
-  bazel test -c opt ${DV_COPT_FLAGS} "$@" deepvariant/...
+  bazel test -c opt "${DV_COPT_FLAGS[@]}" "$@" deepvariant/...
 fi
 
 # Build the binary.

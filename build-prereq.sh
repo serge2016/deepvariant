@@ -78,8 +78,8 @@ curl -Ss -o get-pip.py https://bootstrap.pypa.io/get-pip.py
 python3 get-pip.py --force-reinstall
 rm -f get-pip.py
 
-echo "$(python3 --version)"
-echo "$(pip3 --version)"
+python3 --version
+pip3 --version
 
 note_build_stage "Install python3 packages"
 

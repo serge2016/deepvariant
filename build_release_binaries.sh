@@ -1,4 +1,5 @@
 #!/bin/bash
+
 # Copyright 2017 Google LLC.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -105,7 +106,7 @@ bazel build -c opt \
   --output_filter=DONT_MATCH_ANYTHING \
   --noshow_loading_progress \
   --show_result=0 \
-  ${DV_COPT_FLAGS} \
+  "${DV_COPT_FLAGS[@]}" \
   --build_python_zip \
   :binaries
 
@@ -114,7 +115,7 @@ bazel build -c opt \
   --output_filter=DONT_MATCH_ANYTHING \
   --noshow_loading_progress \
   --show_result=0 \
-  ${DV_COPT_FLAGS} \
+  "${DV_COPT_FLAGS[@]}" \
   --build_python_zip \
   :binaries-deeptrio
 
@@ -124,7 +125,7 @@ bazel build  -c opt \
   --noshow_loading_progress \
   --show_result=0 \
   --noshow_progress \
-  ${DV_COPT_FLAGS} \
+  "${DV_COPT_FLAGS[@]}" \
   :licenses_zip
 
 # Bazel understandably doesn't like it when its output files are edited, so
