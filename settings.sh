@@ -30,6 +30,15 @@
 # Source this file---these options are needed for TF config and for
 # successive bazel runs.
 
+# Version of Ubuntu: 20.04 or 18.04
+export UBUNTU_VERSION="18.04"
+
+export PYTHON_VERSION="3.7"
+# shellcheck disable=SC2155
+export PYTHON_BIN_PATH="$(which "python${PYTHON_VERSION}")"
+export PYTHON_LIB_PATH="/usr/local/lib/python${PYTHON_VERSION}/dist-packages"
+export USE_DEFAULT_PYTHON_LIB_PATH=1
+
 # Set this to 1 if the system image already has TensorFlow preinstalled.  This
 # will skip the installation of TensorFlow.
 export DV_USE_PREINSTALLED_TF="${DV_USE_PREINSTALLED_TF:-0}"
@@ -42,11 +51,13 @@ export CUDNN_INSTALL_PATH="/usr/lib/x86_64-linux-gnu"
 # https://www.tensorflow.org/install/source#tested_build_configurations
 DV_BAZEL_VERSION="3.1.0"
 
-# We need to make sure that $HOME/bin is first in the binary search path so that
+# We need to make sure that $DV_BAZEL_BIN_DIR is first in the binary search path so that
 # `bazel` will find the latest version of bazel installed in the user's home
 # directory. This is set in setting.sh as all DeepVariant scripts source
 # settings.sh and assume that `bazel` will find the right version.
-export PATH="$HOME/bin:$PATH"
+export SOFT="${SOFT-$HOME/soft}"
+export DV_BAZEL_BIN_DIR="${SOFT}/bazel-${DV_BAZEL_VERSION}/bin"
+export PATH="${DV_BAZEL_BIN_DIR}:$PATH"
 
 # Path to the public bucket containing DeepVariant-related artifacts.
 export DEEPVARIANT_BUCKET="gs://deepvariant"
@@ -103,11 +114,6 @@ export DV_TF_NUMPY_VERSION="1.19.2"  # To match GCP_OPTIMIZED_TF_WHL_FILENAME
 # Docker image, it shouldn't be necessary.
 export DV_INSTALL_GPU_DRIVERS="${DV_INSTALL_GPU_DRIVERS:-0}"
 
-export PYTHON_VERSION=3.8
-# shellcheck disable=SC2155
-export PYTHON_BIN_PATH="$(which python${PYTHON_VERSION})"
-export PYTHON_LIB_PATH="/usr/local/lib/python${PYTHON_VERSION}/dist-packages"
-export USE_DEFAULT_PYTHON_LIB_PATH=1
 # N.B. The --experimental_build_setting_api had to be added on protobuf
 # upgrade to 3.9.2 to avoid error in bazel_skylib:
 #   "parameter 'build_setting' is experimental and thus unavailable with the

@@ -37,7 +37,9 @@ source settings.sh
 # bazel should have been installed in build-prereq.sh, but the PATH might
 # need to be added in this script.
 if ! bazel; then
-  PATH="$HOME/bin:$PATH"
+  echo -e "\n\n\n\n\n"
+  echo "ERROR! Path to the directory with bazel binary file is not the \$PATH variable."
+  echo -e "\n\n\n\n\n"
 fi
 
 # Run all deepvariant tests.  Take bazel options from args, if any.

@@ -36,22 +36,21 @@ echo ========== This script has been tested on Ubuntu18.04 and Ubuntu20.04.
 echo ========== See https://github.com/google/clif for how to build on different Unix distributions.
 echo ========== Run this script in root mode.
 
-CLIF_UBUNTU_VERSION="${CLIF_UBUNTU_VERSION-20.04}"
-ABSL_VERSION=20210324.2
+CLIF_UBUNTU_VERSION="${CLIF_UBUNTU_VERSION-18.04}"
+CLIF_PYTHON_VERSION="${CLIF_PYTHON_VERSION-3.6}"
+CLIF_VERSION="4.0"
+ABSL_VERSION=20200923
 PROTOBUF_VERSION=3.13.0
-CLIF_PYTHON_VERSION="${CLIF_PYTHON_VERSION-3.8}"
-# CLIF_PIN can be set to a specific commit hash on
-# https://github.com/google/clif/commits/main.
-# If not set, the default is to checkout the latest commit.
-CLIF_PIN="${CLIF_PIN-}"
+
+SOFT="${SOFT-$HOME/soft}"
+mkdir -p "$SOFT"
 
 APT_ARGS=(
-"-qq"
 "-y"
 )
 
-
 apt-get update  "${APT_ARGS[@]}"
+
 apt-get install "${APT_ARGS[@]}" --no-install-recommends \
     autoconf \
     automake \
@@ -71,7 +70,6 @@ wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key |  apt-key add - && \
   add-apt-repository "deb http://apt.llvm.org/$(lsb_release -sc)/ llvm-toolchain-$(lsb_release -sc)-11 main"
 
 # Install CLIF dependencies
-apt-get update "${APT_ARGS[@]}"
 apt-get install  "${APT_ARGS[@]}" \
     clang-11 \
     libclang-11-dev \
@@ -80,7 +78,6 @@ apt-get install  "${APT_ARGS[@]}" \
     libllvm11 \
     llvm-11-dev \
     python3-dev \
-    python3-pyparsing \
     zlib1g-dev
 
 # Uninstall an older version of libclang so that cmake uses the correct one.
@@ -88,28 +85,27 @@ apt-get remove "${APT_ARGS[@]}" libclang-common-9-dev
 
 # Configure deadsnakes PPA with the more recent versions of python packaged for
 # Ubuntu. See https://launchpad.net/~deadsnakes/+archive/ubuntu/ppa
-apt-get update "${APT_ARGS[@]}" && \
-  apt-get install "${APT_ARGS[@]}" \
+apt-get install "${APT_ARGS[@]}" \
     "python$CLIF_PYTHON_VERSION-dev" \
     "python$CLIF_PYTHON_VERSION-distutils"
 
 # Install latest version of pip since the version on ubuntu could be outdated
-curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py && \
+cd "$SOFT" && curl "https://bootstrap.pypa.io/get-pip.py" -o get-pip.py && \
     "python$CLIF_PYTHON_VERSION" get-pip.py && \
     rm get-pip.py
 
 # Compile and install absl-cpp from source
-wget "https://github.com/abseil/abseil-cpp/archive/$ABSL_VERSION.tar.gz" && \
-    tar -xf "$ABSL_VERSION.tar.gz" && \
+cd "$SOFT" && wget "https://github.com/abseil/abseil-cpp/archive/$ABSL_VERSION.tar.gz" && \
+    tar -xzf "$ABSL_VERSION.tar.gz" && \
     mkdir "abseil-cpp-$ABSL_VERSION/build" && \
     cd "abseil-cpp-$ABSL_VERSION/build" && \
     cmake .. -DCMAKE_POSITION_INDEPENDENT_CODE=true && \
     make install && \
-    rm -rf "/abseil-cpp-$ABSL_VERSION" "/$ABSL_VERSION.tar.gz"
+    rm -rf "abseil-cpp-$ABSL_VERSION" "$ABSL_VERSION.tar.gz"
 
 # Compile and install protobuf from source
-wget "https://github.com/protocolbuffers/protobuf/releases/download/v$PROTOBUF_VERSION/protobuf-cpp-$PROTOBUF_VERSION.tar.gz" && \
-    tar -xf "protobuf-cpp-$PROTOBUF_VERSION.tar.gz" && \
+cd "$SOFT" && wget "https://github.com/protocolbuffers/protobuf/releases/download/v$PROTOBUF_VERSION/protobuf-cpp-$PROTOBUF_VERSION.tar.gz" && \
+    tar -xzf "protobuf-cpp-$PROTOBUF_VERSION.tar.gz" && \
     cd "protobuf-$PROTOBUF_VERSION" && \
     # Configure and install C++ libraries
     ./autogen.sh && \
@@ -117,7 +113,7 @@ wget "https://github.com/protocolbuffers/protobuf/releases/download/v$PROTOBUF_V
     make -j"$(nproc)" && \
     make install && \
     ldconfig && \
-    rm -rf "/protobuf-$PROTOBUF_VERSION" "/protobuf-cpp-$PROTOBUF_VERSION.tar.gz"
+    rm -rf "protobuf-$PROTOBUF_VERSION" "protobuf-cpp-$PROTOBUF_VERSION.tar.gz"
 
 # Install googletest
 cd /usr/src/googletest && \
@@ -125,20 +121,18 @@ cd /usr/src/googletest && \
     make install
 
 # Install python runtime and test dependencies
-"python$CLIF_PYTHON_VERSION" -m pip install \
+pip3 install \
     absl-py \
     parameterized \
-    protobuf=="$PROTOBUF_VERSION"
+    protobuf=="$PROTOBUF_VERSION" \
+    httplib2=="0.18.1" \
+    pyparsing=="2.2.0"
 
-"python$CLIF_PYTHON_VERSION" -m pip uninstall -y pyparsing && \
-  "python$CLIF_PYTHON_VERSION" -m pip install -Iv 'pyparsing==2.2.0'
-DV_PLATFORM="ubuntu-${CLIF_UBUNTU_VERSION}"
-
-ln -sf /usr/bin/python$CLIF_PYTHON_VERSION /usr/local/bin/python3
-
-cd && rm -rf clif && git clone https://github.com/google/clif.git && cd clif
-
-if [[ ! -z ${CLIF_PIN} ]]; then
-  git checkout "${CLIF_PIN}"
-fi
-./INSTALL.sh
+cd "$SOFT" && wget -q -O "clif-${CLIF_VERSION}.tar.gz" "https://github.com/google/clif/archive/refs/tags/v${CLIF_VERSION}.tar.gz" && \
+  tar -xzf "clif-${CLIF_VERSION}.tar.gz" && \
+  cd "clif-${CLIF_VERSION}" && \
+  sed -i 's/^find_package(LLVM 11 REQUIRED)$/find_package(LLVM 11.1.0 REQUIRED)/' "clif/cmake/modules/CLIFUtils.cmake" && \
+  sed -i '/^find_package(PythonLibs REQUIRED)$/d' "clif/cmake/modules/CLIFUtils.cmake" && \
+  sed -i '/^find_package(PythonInterp REQUIRED)$/a find_package(PythonLibs REQUIRED)' "clif/cmake/modules/CLIFUtils.cmake" && \
+  sed -i 's/"$PYTHON" -m pip $PIP_VERBOSE install .$/"$PYTHON" setup.py install/' "INSTALL.sh" && \
+  ./INSTALL.sh
