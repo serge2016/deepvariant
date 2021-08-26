@@ -222,7 +222,7 @@ else
   # bunch of dependencies, but this works fine when we used this in a Dockerfile
   # because we don't do build-prereq.sh in the final image.
   note_build_stage "Build CLIF."
-  sudo CLIF_UBUNTU_VERSION="${UBUNTU_VERSION}" CLIF_PYTHON_VERSION="${PYTHON_VERSION}" ./tools/build_clif.sh
+  sudo CLIF_UBUNTU_VERSION="${UBUNTU_VERSION}" CLIF_PYTHON_VERSION="${PYTHON_VERSION}" bash tools/build_clif.sh
   # redacted
   # Figure out why these symbolic links are needed and see if we can do this better.
   sudo mkdir -p /usr/clang/bin/

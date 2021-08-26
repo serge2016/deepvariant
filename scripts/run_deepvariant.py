@@ -79,6 +79,11 @@ flags.DEFINE_string(
 flags.DEFINE_string(
     'logging_dir', None, 'Optional. Directory where we should write log files '
     'for each stage and optionally runtime reports.')
+flags.DEFINE_string(
+    'dv_bin_dir', '/opt/deepvariant/bin', 'Optional. Directory where DeepVariant '
+    'binaries and scripts are located.')
+flags.DEFINE_boolean(
+    'dv_use_zip', True, 'Add .zip to the DeepVariant binaries.')
 flags.DEFINE_boolean(
     'runtime_report', False, 'Output make_examples runtime metrics '
     'and create a visual runtime report using runtime_by_region_vis. '
@@ -230,8 +235,11 @@ def make_examples_command(ref,
     (string, string) A command to run, and a log file to output to.
   """
   command = [
-      'time', 'seq 0 {} |'.format(FLAGS.num_shards - 1),
-      'parallel -q --halt 2 --line-buffer', '/opt/deepvariant/bin/make_examples'
+    'time',
+    'seq 0 {} |'.format(FLAGS.num_shards - 1),
+    'parallel -q --halt 2 --line-buffer',
+    'python3', 
+    '{}/make_examples{}'.format(FLAGS.dv_bin_dir, ('.zip' if FLAGS.dv_use_zip else ''))
   ]
   command.extend(['--mode', 'calling'])
   command.extend(['--ref', '"{}"'.format(ref)])
@@ -268,7 +276,11 @@ def make_examples_command(ref,
 def call_variants_command(outfile, examples, model_ckpt,
                           intermediate_results_dir, extra_args):
   """Returns a call_variants (command, logfile) for subprocess."""
-  command = ['time', '/opt/deepvariant/bin/call_variants']
+  command = [
+    'time',
+    'python3', 
+    '{}/call_variants{}'.format(FLAGS.dv_bin_dir, ('.zip' if FLAGS.dv_use_zip else ''))
+  ]
   command.extend(['--outfile', '"{}"'.format(outfile)])
   command.extend(['--examples', '"{}"'.format(examples)])
   command.extend(['--checkpoint', '"{}"'.format(model_ckpt)])
@@ -295,7 +307,11 @@ def postprocess_variants_command(ref,
                                  vcf_stats_report=True,
                                  sample_name=None):
   """Returns a postprocess_variants (command, logfile) for subprocess."""
-  command = ['time', '/opt/deepvariant/bin/postprocess_variants']
+  command = [
+    'time',
+    'python3', 
+    '{}/postprocess_variants{}'.format(FLAGS.dv_bin_dir, ('.zip' if FLAGS.dv_use_zip else ''))
+  ]
   command.extend(['--ref', '"{}"'.format(ref)])
   command.extend(['--infile', '"{}"'.format(infile)])
   command.extend(['--outfile', '"{}"'.format(outfile)])
@@ -324,7 +340,11 @@ def runtime_by_region_vis_command(runtime_by_region_path: str):
   runtime_report = os.path.join(FLAGS.logging_dir,
                                 'make_examples_runtime_by_region_report.html')
 
-  command = ['time', '/opt/deepvariant/bin/runtime_by_region_vis']
+  command = [
+    'time',
+    'python3', 
+    '{}/runtime_by_region_vis{}'.format(FLAGS.dv_bin_dir, ('.zip' if FLAGS.dv_use_zip else ''))
+  ]
   command.extend(['--input', '"{}"'.format(runtime_by_region_path)])
   command.extend(['--title', '"{}"'.format('DeepVariant')])
   command.extend(['--output', '"{}"'.format(runtime_report)])

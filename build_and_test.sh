@@ -60,8 +60,8 @@ else
 fi
 
 # Build the binary.
-./build_release_binaries.sh
+bash build_release_binaries.sh
 
 echo 'Expect a usage message:'
-(python3 bazel-out/k8-opt/bin/deepvariant/call_variants.zip --help || : ) | grep '/call_variants.py:'
+(python3 bazel-bin/deepvariant/call_variants.zip --help || : ) | grep '/call_variants.py:'
 
